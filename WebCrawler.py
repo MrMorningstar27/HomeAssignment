@@ -25,17 +25,25 @@ def PageCrawl():
     for page in pages:
         html_soup = bs.BeautifulSoup(page, 'html.parser')
         data = html_soup.find_all('tr', class_ = ['odd','even','odd views-row-first','even views-row-last'])
+        '''
+        logic flow:
+        create dict of metadata+data ==>
+        if same dict exists in Database, raise duplicate alert==>
+        if id is in Database but data is diffrent, update database with new dict==>
+        if id doesn't exist, add dict to collection.
+        '''
         for item in data:
             item = createObject(item, id)
+            #if dict item exists in the dbthen alert duplicate
             if item == metadata.find_one({"_id":id}):
                 print("DUPLICATE ALERT")
             else:
-                try:
+                if type(metadata.find_one({"_id":id})) != type(None):
                     metadata.update_one(metadata.find_one({"_id":id}), item)
-                except:
+                else:
                     metadata.insert_one(item)
-            id += 1
-            #print(id)
+            id += 1#_id auto increment
+            print(id)
 
 
 '''
