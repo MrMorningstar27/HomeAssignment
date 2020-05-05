@@ -1,21 +1,40 @@
 import pymongo
 from requests import get
 import bs4 as bs
-
+import sys
+#connection to mongoDB Atlas server for testing
 client = pymongo.MongoClient("mongodb+srv://TCPizza:1478963250n@datacrawled-i1kaj.mongodb.net/test?retryWrites=true&w=majority")
 
 FirmwareDB = client["DATA"]
 metadata = FirmwareDB["metadata"]
+verbose = False
 
-
-def main(*args):
-    for arg in args:
-        pass
-    PageCrawl()
+def main():
+    global verbose
+    if sys.argv[0] == None: raise Exception("Please read README and provide arguments")
+    for arg in sys.argv[1:]:
+        if arg =='--h':
+            print('''
+            Command format: "python3 WebCrawler.py <option> <site_url>
+            --h - list of all commands
+            --v - verbose
+            ''')
+            break
+        elif arg == '--v':
+            verbose = True
+        elif arg == "https://www.rockchipfirmware.com/":
+            PageCrawl()
+            print("Done!")
+            break
+        elif "http://" in arg or 'https://' in arg:
+            print("This webpage is not supported yet")
+        else:
+            print("Incorect format, please check README for more info")
 
 
 
 def PageCrawl():
+    global verbose
     pages = list()
     id = 0 #unique index to check if there is a duplicate
     numberOfPages = findAmountOfPagesToCrawl()
@@ -36,14 +55,15 @@ def PageCrawl():
             item = createObject(item, id)
             #if dict item exists in the dbthen alert duplicate
             if item == metadata.find_one({"_id":id}):
-                print("DUPLICATE ALERT")
+                if verbose: print("DUPLICATE ALERT on id: "+str(id))
             else:
                 if type(metadata.find_one({"_id":id})) != type(None):
                     metadata.update_one(metadata.find_one({"_id":id}), item)
                 else:
                     metadata.insert_one(item)
+                    if verbose: print(str(item)+"\n\n")
             id += 1#_id auto increment
-            print(id)
+            
 
 
 '''
@@ -53,17 +73,21 @@ returns as dict to add to mongoDB
 '''        
 def createObject(item, id):
     FRef = ""
+    CHUNK = ''
     node = item.find_all('a',href=True)[0]['href']
     if '\\' in node:
         node = node.replace('\\','/')
-    #print(node)
+    #print(node) - DEBUG
     File = (bs.BeautifulSoup(get("http://www.rockchipfirmware.com/"+node).text, 'html.parser')).find_all('a',href=True)
-    #print(File)
+    #print(File) - DEBUG
     for x in File:
         if "rockchip" in x['href']:
             FRef = x['href']
             break
-    CHUNK = get(FRef,stream = True).raw.read(1024)
+    if FRef != '':
+        CHUNK = get(FRef,stream = True).raw.read(1024)
+    else:
+        CHUNK=None
     return {"_id":id,
             "Brand":item.find('td', class_ = "views-field views-field-field-brand").get_text(strip=True),
             "Model":item.find('td', class_ = "views-field views-field-field-model").get_text(strip=True),
