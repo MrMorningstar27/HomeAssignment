@@ -2,7 +2,7 @@ import pymongo
 from requests import get
 import bs4 as bs
 import sys
-#connection to mongoDB Atlas server for testing
+#connection to mongoDB free Atlas server for testing
 client = pymongo.MongoClient("mongodb+srv://TCPizza:1478963250n@datacrawled-i1kaj.mongodb.net/test?retryWrites=true&w=majority")
 
 FirmwareDB = client["DATA"]
@@ -41,6 +41,7 @@ def PageCrawl():
     #get all pages into a list for further parsing
     for index in range(int(numberOfPages)+1):
         pages.append(get("http://www.rockchipfirmware.com/firmware-downloads?page="+str(index)).text)
+    #parse each page in found pages
     for page in pages:
         html_soup = bs.BeautifulSoup(page, 'html.parser')
         data = html_soup.find_all('tr', class_ = ['odd','even','odd views-row-first','even views-row-last'])
@@ -99,11 +100,11 @@ def createObject(item, id):
             "DOWNLOADED":CHUNK
             }
 
-###FULLY WORKING
+
 #for a dynamic Crawl 
 #the number of pages could change so i take the current amount
 def findAmountOfPagesToCrawl():
-    htmlS = bs.BeautifulSoup(get("http://www.rockchipfirmware.com/firmware-downloads-5?page=0").text, 'html.parser')
+    htmlS = bs.BeautifulSoup(get("http://www.rockchipfirmware.com/firmware-downloads?page=0").text, 'html.parser')
     #get text in format "1 to <lastPage>"
     res = htmlS.find('li', class_ = 'pager-current').get_text(strip=True)
 
