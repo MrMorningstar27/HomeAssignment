@@ -25,7 +25,7 @@ def main():
         elif arg == '--v':#verbose option
             verbose = True#update global verbose
         elif arg == "https://www.rockchipfirmware.com/":#check if site is rockchipfirmware
-            PageCrawl()
+            PageCrawl(arg)
             print("Done!")
             break
         elif "http://" in arg or 'https://' in arg:#if given argument is site but not supported
@@ -35,16 +35,16 @@ def main():
 
 
 
-def PageCrawl():
+def PageCrawl(userURL):
     global verbose
     pages = list()
-    pageUrl = "https://www.rockchipfirmware.com/firmware-downloads"#url of first download page
+    pageUrl = userURL+"/firmware-downloads"#url of first download page
     id = 0 #unique index to check if there is a duplicate
     numberOfPages = FindAmountOfPagesToCrawl()
     #get all pages into a list for further parsing
     for index in range(int(numberOfPages)-1):
         pages.append(get(pageUrl).text)
-        pageUrl = "http://www.rockchipfirmware.com/"+FindNextPage(pageUrl)
+        pageUrl = userURL+FindNextPage(pageUrl)
 
     #parse each page in found pages
     for page in pages:
@@ -79,7 +79,7 @@ id, model, name, Node(refrence for downloading file),andriod version, Author
 returns as dict to add to mongoDB
 '''        
 def CreateObject(item, id):
-    FRef = ""
+    FRef = ''
     CHUNK = ''
     node = item.find_all('a',href=True)[0]['href']#find node 
     if '\\' in node:#remove unwanted \ signs and replace with /
