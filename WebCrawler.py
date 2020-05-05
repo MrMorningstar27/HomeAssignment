@@ -63,15 +63,17 @@ def createObject(item, id):
         if "rockchip" in x['href']:
             FRef = x['href']
             break
-
+    CHUNK = get(FRef,stream = True).raw.read(1024)
     return {"_id":id,
             "Brand":item.find('td', class_ = "views-field views-field-field-brand").get_text(strip=True),
             "Model":item.find('td', class_ = "views-field views-field-field-model").get_text(strip=True),
             "Name":item.find('td', class_ = "views-field views-field-title").get_text(strip=True),
             "Node":node,
             "FileRef":FRef,
-            "AndriodVersion":item.find('td', class_ = "views-field views-field-field-android-version2").get_text(strip=True)
-            ,"Author":item.find('td', class_ = "views-field views-field-field-firmware-author").get_text(strip=True)}
+            "AndriodVersion":item.find('td', class_ = "views-field views-field-field-android-version2").get_text(strip=True),
+            "Author":item.find('td', class_ = "views-field views-field-field-firmware-author").get_text(strip=True),
+            "DOWNLOADED":CHUNK
+            }
 
 ###FULLY WORKING
 #for a dynamic Crawl 
